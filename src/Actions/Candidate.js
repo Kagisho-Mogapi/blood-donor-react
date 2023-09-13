@@ -9,9 +9,10 @@ export const ACTION_TYPES = {
 }
 
 export const fetchAll = () => dispatch =>{
-    api.candidate()
+    api.candidate().fetchAll()
         .then(
             response => {
+                console.log(response)
                 dispatch({
                     type:ACTION_TYPES.FETCH_ALL,
                     payload: response.data
