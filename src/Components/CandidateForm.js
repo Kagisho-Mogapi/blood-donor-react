@@ -1,6 +1,10 @@
 import React,{useState} from "react";
 import { Grid, TextField, withStyles, FormControl, InputLabel, Select, MenuItem, Button, FormHelperText } from "@material-ui/core";
 import useForm from "./useForm";
+import { connect } from "react-redux";
+import * as actions from "../Actions/Candidate";
+import { useEffect } from "react";
+import { useToasts } from "react-toast-notifications";
 
 const initFieldValues ={
     fullName: '',
@@ -31,8 +35,11 @@ const styles = theme =>({
 
 const CandidateForm = ({classes, ...props}) => {
 
+    // Toast massage
+    const {addToast} = useToasts()
+
     const validate =(fieldValues = values) =>{
-        let temp ={}
+        let temp ={...errors}
         if('fullName' in fieldValues)
             temp.fullName = fieldValues.fullName ?"":"Field is required"
         
@@ -59,8 +66,9 @@ const CandidateForm = ({classes, ...props}) => {
         setValues,
         errors,
         setErros,
-        handleInputChange
-    } = useForm(initFieldValues, validate)
+        handleInputChange,
+        resetForm
+    } = useForm(initFieldValues, validate, props.setCurrentId)
 
     //Material-ui Select
     const inputLabel = React.useRef(null);
@@ -75,9 +83,27 @@ const CandidateForm = ({classes, ...props}) => {
         
         if(validate())
         {
-            window.alert('Valid Form')
+            const onSuccess = () => {
+                resetForm()
+                addToast("Submitted Successfully",{appearance:'success'})
+            }
+            if(props.currentId == 0)
+                props.createCandidates(values, onSuccess)
+            else
+                props.updateCandidates(props.currentId, values, onSuccess)
         }
     }
+
+    useEffect(()=>{
+        if(props.currentId != 0){
+            setValues({
+                ...props.candidateList.find(x => x.id == props.currentId)
+            })
+            setErros({})
+        }
+
+
+    },[props.currentId])
 
     return (
         <form autocomeplete="off" novalidation="true" className={classes.root} onSubmit={handleSubmit}>
@@ -158,6 +184,7 @@ const CandidateForm = ({classes, ...props}) => {
                         <Button
                             variant="contained"
                             className={classes.smMargin}
+                            onClick={resetForm}
                         >
                             Reset
                         </Button>
@@ -168,5 +195,15 @@ const CandidateForm = ({classes, ...props}) => {
         </form>
     );
 }
- 
-export default withStyles(styles)(CandidateForm);
+
+const mapStateToProps = state =>({
+    candidateList : state.candidate.list
+})
+
+const mapActionToProps ={
+    createCandidates: actions.create,
+    updateCandidates: actions.update,
+}
+
+
+export default connect(mapStateToProps, mapActionToProps) (withStyles(styles)(CandidateForm));

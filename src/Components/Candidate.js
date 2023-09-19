@@ -1,8 +1,11 @@
 import React,{useState, useEffect} from "react";
 import { connect } from "react-redux";
 import * as actions from "../Actions/Candidate";
-import { Grid, Paper,TableContainer, Table, TableHead, TableRow, TableCell, TableBody, withStyles } from "@material-ui/core";
+import { Grid, Paper,TableContainer, Table, TableHead, TableRow, TableCell, TableBody, withStyles, ButtonGroup, Button } from "@material-ui/core";
 import CandidateForm from "./CandidateForm";
+import EditIcon from "@material-ui/icons/Edit";
+import DeleteIcon from "@material-ui/icons/Delete";
+import { useToasts } from "react-toast-notifications";
 
 const styles = theme => ({
     root:{
@@ -17,16 +20,27 @@ const styles = theme => ({
 })
 
 const Candidate = ({classes,...props}) => {
+    const [currentId, setCurrentId] = useState(0)
+
+    // Toast massage
+    const {addToast} = useToasts()
+    
     useEffect(()=>{
         props.fetchAllCandidates()
     },[])
     
+    const onDelete = id =>
+    {
+        if(window.confirm('Do you want to delete the following data'))
+            props.deleteCandidate(id,() => addToast("Deleted Successfully",{appearance:'info'}))
+        
+    }
 
     return (
         <Paper className={classes.paper} elevation={3}>
             <Grid container>
                 <Grid item xs={6}>
-                    <CandidateForm/>
+                    <CandidateForm {...({currentId, setCurrentId})}/>
                 </Grid>
                 <Grid item xs={6}>
                     <TableContainer>
@@ -45,6 +59,12 @@ const Candidate = ({classes,...props}) => {
                                             <TableCell>{record.fullName}</TableCell>
                                             <TableCell>{record.mobile}</TableCell>
                                             <TableCell>{record.bloodGroup}</TableCell>
+                                            <TableCell>
+                                                <ButtonGroup variant="text">
+                                                    <Button><EditIcon color="primary" onClick={() => {setCurrentId(record.id)}}/></Button>
+                                                    <Button><DeleteIcon color="secondary" onClick={() => onDelete(record.id)}/></Button>
+                                                </ButtonGroup>
+                                            </TableCell>
                                         </TableRow>)
                                     })
                                 }
@@ -63,7 +83,8 @@ const mapStateToProps = state =>({
 })
  
 const mapActionToProps ={
-    fetchAllCandidates: actions.fetchAll
+    fetchAllCandidates: actions.fetchAll,
+    deleteCandidate: actions.Delete
 }
 
 

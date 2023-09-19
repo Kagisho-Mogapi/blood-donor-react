@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react";
 
-const useForm = (initFieldValues, validate) => {
+const useForm = (initFieldValues, validate, setCurrentId) => {
     const [values, setValues] = useState(initFieldValues)
     const [errors, setErros] = useState({})
 
@@ -14,12 +14,21 @@ const useForm = (initFieldValues, validate) => {
         validate(fieldValue)
     }
 
+    const resetForm = () =>{
+        setValues({
+            ...initFieldValues
+        })
+        setErros({})
+        setCurrentId(0)
+    }
+
     return {
         values,
         setValues,
         errors,
         setErros,
-        handleInputChange
+        handleInputChange,
+        resetForm
     };
 }
  
